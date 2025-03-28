@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema({
       'Please provide a valid email'
     ]
   },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
