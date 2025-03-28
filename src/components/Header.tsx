@@ -12,12 +12,14 @@ interface AuthUser {
   id: string;
   username: string;
   email: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   isAuthenticated: boolean;
+  isAdmin?: boolean;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<any>;
   register: (username: string, email: string, password: string) => Promise<any>;
@@ -103,6 +105,11 @@ const Header = () => {
                     <Link href="/profile" className="block px-4 py-2 text-white hover:bg-yellow-400 hover:text-black transition-colors duration-200">
                       Profile
                     </Link>
+                    {isAuthenticated && user?.isAdmin && (
+                      <Link href="/admin/events" className="block px-4 py-2 text-white hover:bg-yellow-400 hover:text-black transition-colors duration-200">
+                        Admin Portal
+                      </Link>
+                    )}
                     <Link href="/orders" className="block px-4 py-2 text-white hover:bg-yellow-400 hover:text-black transition-colors duration-200">
                       Orders
                     </Link>
@@ -159,6 +166,11 @@ const Header = () => {
                 <Link href="/profile" className="block hover:text-yellow-400 transition-colors duration-200">
                   Profile
                 </Link>
+                {isAuthenticated && user?.isAdmin && (
+                  <Link href="/admin/events" className="block hover:text-yellow-400 transition-colors duration-200">
+                    Admin Portal
+                  </Link>
+                )}
                 <Link href="/orders" className="block hover:text-yellow-400 transition-colors duration-200">
                   Orders
                 </Link>

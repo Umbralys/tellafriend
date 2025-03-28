@@ -22,6 +22,7 @@ export async function GET() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user data from database
+    await connectToDatabase();
     const user = await User.findById(decoded.id);
     
     if (!user) {
@@ -38,7 +39,8 @@ export async function GET() {
         user: {
           id: user._id,
           username: user.username,
-          email: user.email
+          email: user.email,
+          isAdmin: user.isAdmin || false
         }
       },
       { status: 200 }

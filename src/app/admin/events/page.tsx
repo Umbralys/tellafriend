@@ -8,6 +8,24 @@ import { useAuth } from '../../../../context/AuthContext';
 import Header from '@/components/Header';
 import { Plus, Pencil, Trash2, AlertCircle, Loader } from 'lucide-react';
 
+// Define interface for auth context to fix TypeScript errors
+interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  isAdmin?: boolean;
+}
+
+interface AuthContextValue {
+  user: AuthUser | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  isAdmin?: boolean;
+  signIn: (email: string, password: string) => Promise<any>;
+  signOut: () => Promise<any>;
+  register: (username: string, email: string, password: string) => Promise<any>;
+}
+
 interface Event {
   _id: string;
   title: string;
@@ -22,14 +40,14 @@ export default function AdminEvents() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated } = useAuth() as AuthContextValue;
 
-  // Check authentication
+  // Check admin authentication
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push('/signin?returnUrl=/admin/events');
+    if (!loading && (!isAuthenticated || !user?.isAdmin)) {
+      router.push('/');
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, user, router]);
 
   // Fetch events
   useEffect(() => {
@@ -52,10 +70,10 @@ export default function AdminEvents() {
       }
     };
 
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.isAdmin) {
       fetchEvents();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   // Delete event
   const handleDelete = async (id: string) => {
@@ -81,7 +99,7 @@ export default function AdminEvents() {
   };
 
   // Loading state
-  if (loading || !isAuthenticated) {
+  if (loading || !isAuthenticated || !user?.isAdmin) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <Loader className="h-8 w-8 text-white animate-spin" />

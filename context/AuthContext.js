@@ -18,7 +18,10 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         
         if (data.success && data.user) {
-          setUser(data.user);
+          setUser({
+            ...data.user,
+            isAdmin: data.user.isAdmin || false
+          });
         } else {
           setUser(null);
         }
@@ -47,7 +50,10 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success && data.user) {
-        setUser(data.user);
+        setUser({
+          ...data.user,
+          isAdmin: data.user.isAdmin || false
+        });
         return { success: true };
       }
 
@@ -186,6 +192,7 @@ export const AuthProvider = ({ children }) => {
     verifyEmail,
     resendVerification,
     isAuthenticated: !!user,
+    isAdmin: user?.isAdmin || false
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

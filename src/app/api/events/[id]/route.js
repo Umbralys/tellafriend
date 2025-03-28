@@ -2,23 +2,26 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '../../../../../lib/mongodb';
 import Event from '../../../../../models/Event';
+import User from '../../../../../models/User';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
 // Helper function to check if user is admin
 async function isAdmin(request) {
   try {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const token = cookieStore.get('token')?.value;
-    
     if (!token) return false;
     
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Here you'd typically check if the user has admin privileges
-    // For now, we'll just verify they're authenticated
-    return !!decoded.id;
+    // Find the user
+    await connectToDatabase();
+    const user = await User.findById(decoded.id);
+    
+    // Check if user exists and is an admin
+    return !!(user && user.isAdmin);
   } catch (error) {
     return false;
   }
@@ -27,7 +30,8 @@ async function isAdmin(request) {
 // GET a single event by ID (public)
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    // Await params before destructuring
+    const id = params.id;
     
     await connectToDatabase();
     
@@ -62,7 +66,8 @@ export async function PUT(request, { params }) {
       );
     }
     
-    const { id } = params;
+    // Await params before destructuring
+    const id = params.id;
     const body = await request.json();
     
     await connectToDatabase();
@@ -94,26 +99,18 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     // Check admin status
-    async function isAdmin(request) {
-      try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-        
-        if (!token) return false;
-        
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Find the user
-        await connectToDatabase();
-        const user = await user.findById(decoded.id);
-        
-        // Check if user exists and is an admin
-        return !!(user && user.isAdmin);
-      } catch (error) {
-        return false;
-      }
+    const admin = await isAdmin(request);
+    if (!admin) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
     }
+    
+    // Await params before destructuring
+    const id = params.id;
+    
+    await connectToDatabase();
     
     const event = await Event.findByIdAndDelete(id);
     

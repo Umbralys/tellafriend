@@ -80,26 +80,16 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     // Check admin status
-    async function isAdmin(request) {
-      try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-        
-        if (!token) return false;
-        
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Find the user
-        await connectToDatabase();
-        const user = await user.findById(decoded.id);
-        
-        // Check if user exists and is an admin
-        return !!(user && user.isAdmin);
-      } catch (error) {
-        return false;
-      }
+    const admin = await isAdmin(request);
+    if (!admin) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
     }
+    
+    // Parse the request body
+    const body = await request.json();
     
     // Create new event
     const event = await Event.create(body);
